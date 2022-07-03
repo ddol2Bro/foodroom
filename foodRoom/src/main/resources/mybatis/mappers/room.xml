@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+      PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="mapper.room">
+
+	<resultMap id="memResult" type="vo.RoomVO">
+		<result	property="fr_room_no"			column="fr_room_no"/>
+		<result property="fr_no"				column="fr_no"/>
+		<result property="fr_room_name"			column="fr_room_name"/>
+		<result property="fr_room_person_no"	column="fr_room_person_no"/>
+		<result property="fr_room_image"		column="fr_room_image"/>
+	</resultMap>
+
+	<resultMap id="revResult" type="vo.ReservationVO">
+		<result property="fr_reservation_date"			column="fr_reservation_date"/>
+		<result property="fr_reservation_person_no"		column="fr_reservation_person_no"/>
+		<result property="fr_reservation_date"			column="fr_reservation_date"/>
+		<result property="fr_reservation_ox"			column="fr_reservation_ox"/>
+		<result property="fr_room_no"					column="fr_room_no"/>
+	</resultMap>
+
+		<!-- 룸 List -->
+		<select id="roomList" parameterType="vo.RoomVO" resultMap="memResult">
+			SELECT 	*
+			FROM 	fr_room_info
+			WHERE 	fr_no = #{fr_no}	
+		</select>
+		
+		<!-- 룸 정보 추가하기 -->
+		<insert id="addRoomImage" parameterType="vo.RoomVO">
+			INSERT INTO ezenfood.fr_room_info (fr_no, fr_room_name, fr_room_person_no, fr_room_image)
+			VALUES (#{fr_no}, #{fr_room_name}, #{fr_room_person_no}, #{fr_room_image})
+		</insert>
+		
+		<!-- 예약 완료된 룸 리스트 -->
+		<select id="revRoomList" parameterType="java.util.HashMap" resultMap="memResult">
+			SELECT * FROM ezenfood.fr_room_info
+			WHERE fr_room_no in (select fr_room_no from fr_reservation where fr_reservation_date = #{fr_reservation_date})
+			AND fr_no = #{fr_no};
+		</select>
+		
+		<!-- 예약 가능한 룸 리스트.-->
+		<select id="frRoomNoList" parameterType="java.util.HashMap" resultMap="memResult">
+			SELECT * FROM ezenfood.fr_room_info
+			WHERE fr_room_no not in (select fr_room_no from fr_reservation where fr_reservation_date = #{fr_reservation_date})
+			AND fr_no = #{fr_no};
+		</select>
+		
+		<!-- 오프라인 예약 완료 처리 -->
+		<insert id="ownerRevOk" parameterType="java.util.HashMap">
+			INSERT INTO ezenfood.fr_reservation (fr_reservation_date, fr_room_no, fr_reservation_ox, fr_name, fr_reservation_person_no)
+			VALUES (#{fr_reservation_date}, #{fr_room_no}, 'x', '오프라인예약', '오프라인예약')
+		</insert>
+</mapper>
+
+
+
+

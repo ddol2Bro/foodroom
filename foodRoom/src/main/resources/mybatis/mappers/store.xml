@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+      PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+   
+   
+<mapper namespace="mapper.store">
+
+	<resultMap id="storeResult" type="vo.StoreVO">
+		<result	property="fr_no"				column="fr_no"/>
+		<result property="fr_id"				column="fr_id"/>
+		<result property="fr_store_name"		column="fr_store_name"/>
+		<result property="fr_address"			column="fr_address"/>
+		<result property="fr_store_p_number"	column="fr_store_p_number"/>
+		<result property="fr_menu"				column="fr_menu"/>	
+		<result property="fr_store_ox"			column="fr_store_ox"/>	
+	</resultMap>
+		
+		<!-- 업체중복등록 방지 -->
+		<select id="regiForm" parameterType="String" resultType="int">
+			SELECT COUNT(*)
+			FROM   ezenfood.fr_store
+			WHERE  fr_id = #{fr_id}
+		</select>
+		
+		<!-- 업체 등록 -->
+		<insert id="addregi" parameterType="vo.StoreVO">
+			INSERT INTO ezenfood.fr_store (fr_no, fr_id, fr_store_name, fr_address, fr_store_p_number, fr_menu)
+			VALUES(#{fr_no}, #{fr_id}, #{fr_store_name}, #{fr_address}, #{fr_store_p_number}, #{fr_menu})
+		</insert>
+	
+		<!-- 승인 요청 List -->
+		<select id="approveList" resultMap="storeResult">
+			SELECT 	*
+			FROM 	fr_store
+			WHERE 	fr_store_ox = 'x' 	
+			ORDER BY fr_no DESC
+		</select>
+		
+		<!-- 미등록 업체 승인하기  -->
+		<update id="approveGo" parameterType="vo.StoreVO">
+			UPDATE fr_store
+			SET    fr_store_ox = 'o' 
+			WHERE  fr_id = #{fr_id}
+		</update>
+		
+		<!-- 업체 승인시 fr_class를 12로 변경 -->
+		<update id="approveOwnerGo" parameterType="vo.StoreVO">
+			UPDATE fr_user
+			SET    fr_class = '12'
+			WHERE  fr_class = '02'
+			AND    fr_id = #{fr_id}
+		</update>
+		
+		<!-- 승인 완료 List (관리자, 고객 사용)-->
+		<select id="approveOkList" resultMap="storeResult">
+			SELECT 	*
+			FROM 	fr_store
+			WHERE 	fr_store_ox = 'o' 	
+			ORDER BY fr_no DESC
+		</select>
+	
+		<!-- 업체명 검색 -->
+		<select id="findStoreOk" parameterType="String" resultMap="storeResult">
+			SELECT 	*
+			FROM 	fr_store
+			WHERE 	fr_store_name LIKE CONCAT('%',#{selectText},'%')
+		</select>
+		
+		<!-- 업체주소 검색 -->
+		<select id="findAddressOk" parameterType="String" resultMap="storeResult">
+			SELECT 	*
+			FROM 	fr_store
+			WHERE 	fr_address LIKE CONCAT('%',#{selectText},'%')
+		</select>
+		
+		<!-- 지역별 업체 검색 -->
+		<select id="findStoreList" parameterType="vo.SelectVO" resultMap="storeResult">
+			SELECT 	*
+			FROM 	fr_store
+			WHERE 	fr_address LIKE CONCAT('%',#{findBigStore},'%')
+			AND		fr_address LIKE CONCAT('%',#{findSmallStore},'%')
+		</select>
+				
+		<!-- 업체번호 매칭(아이디) -->
+		<select id="findFr_no" parameterType="String" resultType="int">
+			SELECT 	fr_no
+			FROM 	fr_store
+			WHERE 	fr_id = #{fr_id}
+		</select>
+	
+</mapper>
